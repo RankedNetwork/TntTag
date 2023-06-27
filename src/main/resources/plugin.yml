@@ -1,0 +1,3 @@
+name: TntTag
+version: '${project.version}'
+main: ga.justreddy.wiki.tnttag.TntTag
