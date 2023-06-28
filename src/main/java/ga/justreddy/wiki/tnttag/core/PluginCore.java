@@ -1,10 +1,7 @@
 package ga.justreddy.wiki.tnttag.core;
 
-import ga.justreddy.wiki.tnttag.api.Nms;
-import ga.justreddy.wiki.tnttag.manager.GameManager;
-import ga.justreddy.wiki.tnttag.manager.MapManager;
-import ga.justreddy.wiki.tnttag.manager.PlayerManager;
-import ga.justreddy.wiki.tnttag.manager.WorldManager;
+import ga.justreddy.wiki.tnttag.nms.Nms;
+import ga.justreddy.wiki.tnttag.manager.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public interface PluginCore {
@@ -22,6 +19,8 @@ public interface PluginCore {
     WorldManager getWorldManager();
 
     PlayerManager getPlayerManager();
+
+    ConfigManager getConfigManager();
 
     Nms getNms();
 

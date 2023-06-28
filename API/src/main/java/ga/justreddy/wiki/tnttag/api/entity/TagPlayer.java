@@ -2,6 +2,7 @@ package ga.justreddy.wiki.tnttag.api.entity;
 
 import ga.justreddy.wiki.tnttag.api.entity.data.PlayerStats;
 import ga.justreddy.wiki.tnttag.api.game.Game;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -36,5 +37,7 @@ public interface TagPlayer {
     void sendSound(String sound);
 
     Optional<Player> getPlayer();
+
+    void teleport(Location location);
 
 }

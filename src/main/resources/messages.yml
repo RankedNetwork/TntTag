@@ -1,0 +1,7 @@
+# DO NOT TOUCH THIS
+config-version: 1
+
+titles: {}
+
+timers:
+  starting: "&bStarting in &3<seconds>"

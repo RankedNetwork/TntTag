@@ -11,6 +11,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 import java.util.UUID;
 
@@ -57,6 +58,17 @@ public class GameListener implements Listener {
                 .getTagPlayer(event.getEntity().getUniqueId());
         if (!tagPlayer.isPlaying()) return;
         event.setFoodLevel(20);
+    }
+
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent event) {
+        TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
+                .getTagPlayer(event.getPlayer().getUniqueId());
+        if (!tagPlayer.isPlaying()) return;
+        if (tagPlayer.isDead()) return;
+        Game game = tagPlayer.getGame();
+        game.sendMessage(tagPlayer.getName() + ": " + event.getMessage());
+        event.setCancelled(true);
     }
 
 }

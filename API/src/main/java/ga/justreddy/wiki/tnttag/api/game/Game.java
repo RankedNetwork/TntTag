@@ -32,13 +32,13 @@ public interface Game {
 
     Location getWaitingLobby();
 
+    Location getBeginSpawn();
+
     Optional<Location> getSpectatorSpawn();
 
     int getPlayerCount();
 
-    int getRound();
-
-    void setRound(int round);
+    Round getRound();
 
     GameState getGameState();
 
@@ -53,6 +53,8 @@ public interface Game {
     void sendActionBar(String message);
 
     void sendSound(String sound);
+
+    void teleport(Location location);
 
     void setGameState(GameState gameState);
 

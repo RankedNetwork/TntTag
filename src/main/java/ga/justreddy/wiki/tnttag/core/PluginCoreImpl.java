@@ -1,11 +1,9 @@
 package ga.justreddy.wiki.tnttag.core;
 
-import ga.justreddy.wiki.tnttag.TntTag;
-import ga.justreddy.wiki.tnttag.api.Nms;
+import ga.justreddy.wiki.tnttag.nms.Nms;
 import ga.justreddy.wiki.tnttag.manager.*;
 import ga.justreddy.wiki.tnttag.util.ChatUtil;
 import lombok.AccessLevel;
-import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.bukkit.Bukkit;
@@ -26,6 +24,7 @@ public class PluginCoreImpl implements PluginCore {
     GameManager gameManager;
     WorldManager worldManager;
     PlayerManager playerManager;
+    ConfigManager configManager;
     JavaPlugin plugin;
     @NonFinal Nms nms;
 
@@ -33,6 +32,7 @@ public class PluginCoreImpl implements PluginCore {
         this.plugin = plugin;
         this.managers = new ArrayList<>();
         addManagers(
+                configManager = new ConfigManager(plugin),
                 worldManager = new WorldManager(),
                 mapManager = new MapManager(plugin.getDataFolder()),
                 gameManager = new GameManager(plugin.getDataFolder()),
@@ -52,8 +52,6 @@ public class PluginCoreImpl implements PluginCore {
                 + " &bby &3JustReddy");
         //setupNms();
         managers.forEach(Manager::start);
-
-
 
         ChatUtil.sendConsole("&bFinished starting plugin...");
     }
@@ -85,6 +83,11 @@ public class PluginCoreImpl implements PluginCore {
     }
 
     @Override
+    public ConfigManager getConfigManager() {
+        return configManager;
+    }
+
+    @Override
     public Nms getNms() {
         return nms;
     }
@@ -96,7 +99,7 @@ public class PluginCoreImpl implements PluginCore {
 
     private void setupNms() {
         try {
-            nms = (Nms) Class.forName("ga.justreddy.wiki.tntag." + VERSION + "." + VERSION).newInstance();
+            nms = (Nms) Class.forName("ga.justreddy.wiki.tntag.nms." + VERSION + "." + VERSION).newInstance();
             ChatUtil.sendConsole("&bFound &lNMS&b version: &l" + VERSION);
         } catch (Exception ex) {
             ChatUtil.sendConsole("&cFailed to find &lNMS&c version: &l" + VERSION +

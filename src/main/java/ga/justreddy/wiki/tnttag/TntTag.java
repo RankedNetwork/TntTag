@@ -1,6 +1,5 @@
 package ga.justreddy.wiki.tnttag;
 
-import ga.justreddy.wiki.tnttag.api.Nms;
 import ga.justreddy.wiki.tnttag.core.PluginCore;
 import ga.justreddy.wiki.tnttag.core.PluginCoreImpl;
 import lombok.AccessLevel;
@@ -16,15 +15,16 @@ public final class TntTag extends JavaPlugin {
 
     @Override
     public void onLoad() {
+        if (!getDataFolder().exists()) {
+            getDataFolder().mkdir();
+        }
+        core = new PluginCoreImpl(this);
+        core.onLoad();
     }
 
     @Override
     public void onEnable() {
         // So clean :smile:
-        if (!getDataFolder().exists()) {
-            getDataFolder().mkdir();
-        }
-        core = new PluginCoreImpl(this);
         core.onEnable();
     }
 

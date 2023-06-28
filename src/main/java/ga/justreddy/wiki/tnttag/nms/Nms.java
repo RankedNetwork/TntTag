@@ -1,4 +1,4 @@
-package ga.justreddy.wiki.tnttag.api;
+package ga.justreddy.wiki.tnttag.nms;
 
 import ga.justreddy.wiki.tnttag.api.game.Game;
 import org.bukkit.Location;
