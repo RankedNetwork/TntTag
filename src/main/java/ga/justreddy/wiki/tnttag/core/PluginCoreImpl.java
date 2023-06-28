@@ -50,7 +50,7 @@ public class PluginCoreImpl implements PluginCore {
         ChatUtil.sendConsole("&bStarting plugin...");
         ChatUtil.sendConsole("&bTntTag &3v" + plugin.getDescription().getVersion()
                 + " &bby &3JustReddy");
-        //setupNms();
+        if (!setupNms()) return;
         managers.forEach(Manager::start);
 
         ChatUtil.sendConsole("&bFinished starting plugin...");
@@ -97,17 +97,18 @@ public class PluginCoreImpl implements PluginCore {
         return plugin;
     }
 
-    private void setupNms() {
+    private boolean setupNms() {
         try {
-            nms = (Nms) Class.forName("ga.justreddy.wiki.tntag.nms." + VERSION + "." + VERSION).newInstance();
+            nms = (Nms) Class.forName("ga.justreddy.wiki.tnttag.nms." + VERSION + "." + VERSION).newInstance();
             ChatUtil.sendConsole("&bFound &lNMS&b version: &l" + VERSION);
         } catch (Exception ex) {
             ChatUtil.sendConsole("&cFailed to find &lNMS&c version: &l" + VERSION +
                     "&c. It's not supported!");
             Bukkit.getPluginManager().disablePlugin(plugin);
             ex.printStackTrace();
-            return;
+            return false;
         }
+        return true;
     }
 
     private static String getVersion(Server server) {

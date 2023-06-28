@@ -12,6 +12,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.NonFinal;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 import java.util.Optional;
@@ -106,5 +107,10 @@ public class TagPlayerImpl implements TagPlayer {
     @Override
     public Optional<Player> getPlayer() {
         return Optional.ofNullable(player);
+    }
+
+    @Override
+    public void teleport(Location location) {
+        if (player != null) player.teleport(location);
     }
 }

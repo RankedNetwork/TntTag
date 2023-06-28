@@ -15,7 +15,7 @@ public interface Nms {
 
     void sendActionBar(Player player, String message);
 
-    void sendParticle(Location location, int x, int y, int z, int amount, int data);
+    void sendParticle(Location location, String type, int offsetX, int offsetY, int offsetZ, int amount, int data);
 
     void setIt(Game game, Player it);
 
