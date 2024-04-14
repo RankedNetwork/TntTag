@@ -64,6 +64,10 @@ public interface Game {
 
     void onTagPlayerDeath(TagPlayer tagPlayer);
 
+    void startRound();
+
+    void onGameEnd(TagPlayer winner);
+
     void onCountDown();
 
     void reset();

@@ -8,10 +8,14 @@ import ga.justreddy.wiki.tnttag.manager.PlayerManager;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 
 import java.util.UUID;
 
@@ -58,6 +62,38 @@ public class GameListener implements Listener {
                 .getTagPlayer(event.getEntity().getUniqueId());
         if (!tagPlayer.isPlaying()) return;
         event.setFoodLevel(20);
+    }
+
+    @EventHandler
+    public void onBlockBreak(BlockBreakEvent event) {
+        TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
+                .getTagPlayer(event.getPlayer().getUniqueId());
+        if (!tagPlayer.isPlaying()) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onDrop(PlayerDropItemEvent event) {
+        TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
+                .getTagPlayer(event.getPlayer().getUniqueId());
+        if (!tagPlayer.isPlaying()) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onItemPickup(PlayerPickupItemEvent event) {
+        TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
+                .getTagPlayer(event.getPlayer().getUniqueId());
+        if (!tagPlayer.isPlaying()) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onBlockPlace(BlockPlaceEvent event) {
+        TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
+                .getTagPlayer(event.getPlayer().getUniqueId());
+        if (!tagPlayer.isPlaying()) return;
+        event.setCancelled(true);
     }
 
     @EventHandler

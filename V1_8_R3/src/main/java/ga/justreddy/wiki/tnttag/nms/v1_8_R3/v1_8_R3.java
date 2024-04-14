@@ -1,8 +1,12 @@
 package ga.justreddy.wiki.tnttag.nms.v1_8_R3;
 
+import ga.justreddy.wiki.tnttag.api.entity.TagPlayer;
 import ga.justreddy.wiki.tnttag.api.game.Game;
 import ga.justreddy.wiki.tnttag.nms.Nms;
+import ga.justreddy.wiki.tnttag.team.FakeTeam;
+import ga.justreddy.wiki.tnttag.team.FakeTeamManager;
 import net.minecraft.server.v1_8_R3.*;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.craftbukkit.v1_8_R3.entity.CraftPlayer;
@@ -10,7 +14,7 @@ import org.bukkit.craftbukkit.v1_8_R3.util.CraftChatMessage;
 import org.bukkit.entity.Player;
 import org.bukkit.generator.ChunkGenerator;
 
-import java.util.Random;
+import java.util.*;
 
 public final class v1_8_R3 implements Nms {
 
@@ -93,33 +97,63 @@ public final class v1_8_R3 implements Nms {
 
     @Override
     public void setIt(Game game, Player it) {
-        EntityPlayer itPlayer = ((CraftPlayer) it).getHandle();
-        itPlayer.listName = CraftChatMessage.fromString("&c[IT] ")[0];
-        game.getPlayers().forEach(tagPlayer ->  {
-            if (!tagPlayer.getPlayer().isPresent()) return;
-            Player player = tagPlayer.getPlayer().get();
-            EntityPlayer survivorPlayer = ((CraftPlayer) player).getHandle();
-            PacketPlayOutPlayerInfo info = new PacketPlayOutPlayerInfo(
-                    PacketPlayOutPlayerInfo.EnumPlayerInfoAction.UPDATE_DISPLAY_NAME, itPlayer
-            );
-            survivorPlayer.playerConnection.sendPacket(info);
+        Map<UUID, List<FakeTeam>> teams = FakeTeamManager.PLAYER_TEAMS;
+        for (FakeTeam team : teams.getOrDefault(it.getUniqueId(), new ArrayList<>())) {
+            FakeTeamManager.reset(it, team);
+        }
+        teams.remove(it.getUniqueId());
 
-        });
+        List<FakeTeam> fakeTeams = teams.getOrDefault(it.getUniqueId(), new ArrayList<>());
+        FakeTeam itTeam = new FakeTeam(ChatColor.RED + "[IT] ",
+                "",
+                0
+        );
+        itTeam.addMember(it.getName());
+        if (!fakeTeams.isEmpty()) {
+            fakeTeams.clear();
+        }
+        fakeTeams.add(itTeam);
+        teams.put(it.getUniqueId(), fakeTeams);
+
+        FakeTeamManager.sendTeam(it, itTeam);
+
+        for (TagPlayer player : game.getPlayers()) {
+            player.getPlayer().ifPresent(bukkitPlayer -> {
+                if (bukkitPlayer.getUniqueId().equals(it.getUniqueId())) return;
+                FakeTeamManager.sendTeam(bukkitPlayer, itTeam);
+            });
+        }
     }
 
     @Override
     public void removeIt(Game game, Player it) {
-        EntityPlayer itPlayer = ((CraftPlayer) it).getHandle();
-        itPlayer.listName = CraftChatMessage.fromString(null)[0];
-        game.getPlayers().forEach(tagPlayer ->  {
-            if (!tagPlayer.getPlayer().isPresent()) return;
-            Player player = tagPlayer.getPlayer().get();
-            EntityPlayer survivorPlayer = ((CraftPlayer) player).getHandle();
-            PacketPlayOutPlayerInfo info = new PacketPlayOutPlayerInfo(
-                    PacketPlayOutPlayerInfo.EnumPlayerInfoAction.UPDATE_DISPLAY_NAME, itPlayer
-            );
-            survivorPlayer.playerConnection.sendPacket(info);
-        });
+        Map<UUID, List<FakeTeam>> teams = FakeTeamManager.PLAYER_TEAMS;
+        for (FakeTeam team : teams.getOrDefault(it.getUniqueId(), new ArrayList<>())) {
+            FakeTeamManager.reset(it, team);
+        }
+        teams.remove(it.getUniqueId());
+
+        List<FakeTeam> fakeTeams = teams.getOrDefault(it.getUniqueId(), new ArrayList<>());
+        FakeTeam survivorTeam = new FakeTeam(ChatColor.GREEN + "",
+                "",
+                1
+        );
+        survivorTeam.addMember(it.getName());
+        if (!fakeTeams.isEmpty()) {
+            fakeTeams.clear();
+        }
+        fakeTeams.add(survivorTeam);
+        teams.put(it.getUniqueId(), fakeTeams);
+
+        FakeTeamManager.sendTeam(it, survivorTeam);
+
+
+        for (TagPlayer player : game.getPlayers()) {
+            player.getPlayer().ifPresent(bukkitPlayer -> {
+                if (bukkitPlayer.getUniqueId().equals(it.getUniqueId())) return;
+                FakeTeamManager.sendTeam(bukkitPlayer, survivorTeam);
+            });
+        }
     }
 
     @Override

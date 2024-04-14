@@ -2,6 +2,7 @@ package ga.justreddy.wiki.tnttag.model.game;
 
 import ga.justreddy.wiki.tnttag.TntTag;
 import ga.justreddy.wiki.tnttag.api.entity.TagPlayer;
+import ga.justreddy.wiki.tnttag.api.events.GameStartEvent;
 import ga.justreddy.wiki.tnttag.api.game.Cuboid;
 import ga.justreddy.wiki.tnttag.api.game.Game;
 import ga.justreddy.wiki.tnttag.api.game.Round;
@@ -9,6 +10,7 @@ import ga.justreddy.wiki.tnttag.api.game.enums.GameState;
 import ga.justreddy.wiki.tnttag.model.entity.data.PlayerStatsImpl;
 import ga.justreddy.wiki.tnttag.model.game.timer.AbstractTimer;
 import ga.justreddy.wiki.tnttag.model.game.timer.impl.StartingTimer;
+import ga.justreddy.wiki.tnttag.util.BukkitUtil;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
 import org.bukkit.Location;
@@ -35,6 +37,7 @@ public class GameImpl implements Game {
     List<TagPlayer> its;
     int max;
     int min;
+    int roundNumber;
     Cuboid lobbyCuboid;
     Cuboid gameCuboid;
     Location waitingLobby;
@@ -205,6 +208,20 @@ public class GameImpl implements Game {
     }
 
     @Override
+    public void startRound() {
+        teleport(beginSpawn);
+        chooseRandomIts();
+        roundNumber+=1;
+        this.round = new RoundImpl(this, 40, roundNumber);
+        round.start();
+    }
+
+    @Override
+    public void onGameEnd(TagPlayer winner) {
+        setGameState(GameState.ENDING);
+    }
+
+    @Override
     public void onCountDown() {
         switch (gameState) {
             case WAITING:
@@ -228,7 +245,7 @@ public class GameImpl implements Game {
 
                 break;
             case PLAYING:
-                // TODO PLAYING
+                // DONT NEED ANYTHING HERE AT THE MOMENT
                 break;
             case ENDING:
                 // TODO ENDING
@@ -246,7 +263,7 @@ public class GameImpl implements Game {
     private void chooseRandomIts() {
         its.clear();
         List<TagPlayer> copy = new ArrayList<>(getAlivePlayers());
-        double taggerPercentage = Double.parseDouble("40") / 100.0;
+        double taggerPercentage = 40 / 100.0;
         int numTaggers = (int) Math.round(copy.size() * taggerPercentage);
         Collections.shuffle(copy);
 
@@ -268,16 +285,9 @@ public class GameImpl implements Game {
 
     }
 
-    private void startRound() {
-        teleport(beginSpawn);
-        chooseRandomIts();
-        this.round = new RoundImpl(this, 40);
-        round.start();
-    }
-
     private void onGameStart() {
-        // TODO
         setGameState(GameState.PLAYING);
+        BukkitUtil.calLEvent(new GameStartEvent(this));
         startRound();
     }
 

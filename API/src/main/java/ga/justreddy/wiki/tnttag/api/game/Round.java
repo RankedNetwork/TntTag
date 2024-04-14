@@ -8,6 +8,8 @@ public interface Round {
 
     int getRoundDuration();
 
+    int getRoundNumber();
+
     void start();
 
     void end();

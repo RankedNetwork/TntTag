@@ -1,5 +1,6 @@
 package ga.justreddy.wiki.tnttag.core;
 
+import ga.justreddy.wiki.tnttag.commands.TestCommand;
 import ga.justreddy.wiki.tnttag.nms.Nms;
 import ga.justreddy.wiki.tnttag.manager.*;
 import ga.justreddy.wiki.tnttag.util.ChatUtil;
@@ -52,6 +53,8 @@ public class PluginCoreImpl implements PluginCore {
                 + " &bby &3JustReddy");
         if (!setupNms()) return;
         managers.forEach(Manager::start);
+
+        plugin.getCommand("tnttest").setExecutor(new TestCommand());
 
         ChatUtil.sendConsole("&bFinished starting plugin...");
     }

@@ -1,7 +1,24 @@
 # DO NOT TOUCH THIS
 config-version: 1
 
-titles: {}
+titles:
+  round-start:
+    title: "&aRound <round>"
+    subtitle: ""
 
+actionbars:
+  it: "&cYou are IT!"
+  survivor: "&aYou are a survivor!"
 timers:
   starting: "&bStarting in &3<seconds>"
+
+tab-list:
+  it: "&c[IT] "
+  survivor: "&a"
+
+game:
+  join: "&a<player> joined &e(<amount>/<max>)"
+  leave: "&a<player> left &e(<amount>/<max>)"
+  round-end: "&aRound <round> ended"
+  blew-up: "&c<player> blew up"
+  lost-game: "&cYou lost"
