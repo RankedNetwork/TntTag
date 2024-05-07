@@ -3,6 +3,8 @@ package ga.justreddy.wiki.tnttag.model.game;
 import ga.justreddy.wiki.tnttag.TntTag;
 import ga.justreddy.wiki.tnttag.api.entity.TagPlayer;
 import ga.justreddy.wiki.tnttag.api.events.GameStartEvent;
+import ga.justreddy.wiki.tnttag.api.events.PlayerGameJoinEvent;
+import ga.justreddy.wiki.tnttag.api.events.PlayerGameLeaveEvent;
 import ga.justreddy.wiki.tnttag.api.game.Cuboid;
 import ga.justreddy.wiki.tnttag.api.game.Game;
 import ga.justreddy.wiki.tnttag.api.game.Round;
@@ -11,14 +13,17 @@ import ga.justreddy.wiki.tnttag.model.entity.data.PlayerStatsImpl;
 import ga.justreddy.wiki.tnttag.model.game.timer.AbstractTimer;
 import ga.justreddy.wiki.tnttag.model.game.timer.impl.StartingTimer;
 import ga.justreddy.wiki.tnttag.util.BukkitUtil;
+import ga.justreddy.wiki.tnttag.util.LocationUtil;
+import ga.justreddy.wiki.tnttag.util.player.PlayerUtil;
 import lombok.AccessLevel;
 import lombok.experimental.FieldDefaults;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,6 +40,7 @@ public class GameImpl implements Game {
     final FileConfiguration config;
     List<TagPlayer> players;
     List<TagPlayer> its;
+    List<TagPlayer> spectators;
     int max;
     int min;
     int roundNumber;
@@ -46,15 +52,45 @@ public class GameImpl implements Game {
     GameState gameState; // TODO
     Round round = null;
     AbstractTimer startingTimer;
+    AbstractTimer endTimer;
+    World world;
 
     public GameImpl(String name, FileConfiguration config) {
         this.name = name;
         this.config = config;
         this.displayName = config.getString("options.displayName") == null ?
                 config.getString("options.displayName") : name;
+        this.startingTimer = new StartingTimer(20, TntTag.getCore().getPlugin(), this);
+        this.endTimer = new StartingTimer(10, TntTag.getCore().getPlugin(), this);
+        this.players = new ArrayList<>();
+        this.its = new ArrayList<>();
+        this.spectators = new ArrayList<>();
+    }
 
+    @Override
+    public void init(World world) {
+        this.world = world;
+        players.clear();
+        its.clear();
+        spectators.clear();
+        max = config.getInt("options.max");
+        min = config.getInt("options.min");
+        roundNumber = 0;
 
-        startingTimer = new StartingTimer(20, TntTag.getCore().getPlugin(), this);
+        this.waitingLobby = LocationUtil.getLocation(config.getString("locations.waitingLobby.spawn"));
+        if (waitingLobby != null) {
+            Location high = LocationUtil.getLocation(config.getString("locations.waitingLobby.high"));
+            Location low = LocationUtil.getLocation(config.getString("locations.waitingLobby.low"));
+            lobbyCuboid = new Cuboid(high, low);
+        }
+
+        Location high = LocationUtil.getLocation(config.getString("locations.game.high"));
+        Location low = LocationUtil.getLocation(config.getString("locations.game.low"));
+        gameCuboid = new Cuboid(high, low);
+        this.startingTimer = new StartingTimer(20, TntTag.getCore().getPlugin(), this);
+        this.beginSpawn = LocationUtil.getLocation(config.getString("locations.beginSpawn"));
+        this.spectatorSpawn = LocationUtil.getLocation(config.getString("locations.spectatorSpawn"));
+        setGameState(GameState.WAITING);
     }
 
     @Override
@@ -147,7 +183,7 @@ public class GameImpl implements Game {
         its.remove(tagger);
         its.add(tagged);
         Player taggedPlayer = tagged.getPlayer().orElse(null);
-        if (taggedPlayer ==  null) return;
+        if (taggedPlayer == null) return;
         Player taggerPlayer = tagger.getPlayer().orElse(null);
         if (taggerPlayer == null) return;
         TntTag.getCore().getNms().removeIt(this, taggerPlayer);
@@ -195,15 +231,104 @@ public class GameImpl implements Game {
     @Override
     public void onTagPlayerJoin(TagPlayer tagPlayer) {
 
+
+        Player bukkitPlayer = tagPlayer.getPlayer().orElse(null);
+
+        if (bukkitPlayer == null) return;
+
+        bukkitPlayer.setAllowFlight(false);
+        bukkitPlayer.setFlying(false);
+
+        players.add(tagPlayer);
+        tagPlayer.setGame(this);
+        bukkitPlayer.getInventory().setHeldItemSlot(4);
+        bukkitPlayer.setGameMode(GameMode.ADVENTURE);
+
+        if (waitingLobby != null && lobbyCuboid != null) {
+            tagPlayer.teleport(waitingLobby);
+        } else {
+            tagPlayer.teleport(beginSpawn);
+        }
+
+        PlayerUtil.refresh(bukkitPlayer);
+
+        // TODO possibly set their rank ?
+        Bukkit.getScheduler().runTaskLater(TntTag.getCore().getPlugin(), () -> {
+            // TODO set scoreboard
+
+            PlayerUtil.clearInventory(bukkitPlayer);
+
+            for (Player player1 : world.getPlayers()) {
+                tagPlayer.getPlayer().ifPresent(player -> {
+                    player1.showPlayer(player);
+                    player.showPlayer(player1);
+                });
+            }
+
+            // TODO add items maybe?
+        }, 5L);
+
+        PlayerGameJoinEvent event = new PlayerGameJoinEvent(tagPlayer);
+        event.call();
+
     }
 
     @Override
     public void onTagPlayerLeave(TagPlayer tagPlayer, boolean silent) {
+        spectators.remove(tagPlayer);
+        players.remove(tagPlayer);
+        tagPlayer.setGame(null);
+        tagPlayer.setDead(false);
+
+        // TODO remove scoreboard
+
+        // TODO properly remove player from game
+        tagPlayer.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+
+        PlayerGameLeaveEvent event = new PlayerGameLeaveEvent(this, tagPlayer);
+        event.call();
+
+        if (silent) return;
+        // tODo send message that left
 
     }
 
     @Override
     public void onTagPlayerDeath(TagPlayer tagPlayer) {
+        if (tagPlayer.isDead()) return;
+
+        /**
+         * No need to fire an event here
+         * Because {@Class PlayerLostRoundEvent} will be fired in {@Class RoundImpl#end()}
+         */
+
+        tagPlayer.setDead(true);
+        Player bukkitPlayer = tagPlayer.getPlayer().orElse(null);
+        if (bukkitPlayer == null) return;
+        bukkitPlayer.setGameMode(GameMode.ADVENTURE);
+
+        PlayerUtil.refresh(bukkitPlayer);
+        spectators.add(tagPlayer);
+        Bukkit.getScheduler().runTaskLater(TntTag.getCore().getPlugin(), () -> {
+            bukkitPlayer.teleport(spectatorSpawn);
+            bukkitPlayer.setAllowFlight(true);
+            bukkitPlayer.setFlying(true);
+            bukkitPlayer.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, Integer.MAX_VALUE, 4));
+        }, 3L);
+
+        for (TagPlayer player : players) {
+            player.getPlayer().ifPresent(player1 -> {
+                player1.hidePlayer(bukkitPlayer);
+            });
+        }
+
+        for (TagPlayer player : getSpectatorPlayers()) {
+            player.getPlayer().ifPresent(player1 -> {
+                player1.hidePlayer(bukkitPlayer);
+            });
+        }
+
+        // TODO send title maybe ?
 
     }
 
@@ -211,7 +336,7 @@ public class GameImpl implements Game {
     public void startRound() {
         teleport(beginSpawn);
         chooseRandomIts();
-        roundNumber+=1;
+        roundNumber += 1;
         this.round = new RoundImpl(this, 40, roundNumber);
         round.start();
     }
@@ -223,6 +348,7 @@ public class GameImpl implements Game {
 
     @Override
     public void onCountDown() {
+        if (world == null) return;
         switch (gameState) {
             case WAITING:
                 if (getPlayerCount() >= min) {
@@ -249,6 +375,7 @@ public class GameImpl implements Game {
                 break;
             case ENDING:
                 // TODO ENDING
+
                 break;
             case RESTARTING:
                 // TODO RESTARTING
@@ -257,7 +384,18 @@ public class GameImpl implements Game {
 
     @Override
     public void reset() {
-
+        setGameState(GameState.RESTARTING);
+        world.getPlayers().forEach(player -> {
+            player.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+        });
+        players.clear();
+        its.clear();
+        roundNumber = 0;
+        round = null;
+        startingTimer.stop();
+        Bukkit.getScheduler().runTaskLater(TntTag.getCore().getPlugin(), () -> {
+            TntTag.getCore().getAdapter().onRestart(this);
+        }, 20L);
     }
 
     private void chooseRandomIts() {

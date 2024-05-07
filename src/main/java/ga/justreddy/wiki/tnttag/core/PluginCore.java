@@ -1,5 +1,6 @@
 package ga.justreddy.wiki.tnttag.core;
 
+import ga.justreddy.wiki.tnttag.api.game.map.ResetAdapter;
 import ga.justreddy.wiki.tnttag.nms.Nms;
 import ga.justreddy.wiki.tnttag.manager.*;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -23,6 +24,8 @@ public interface PluginCore {
     ConfigManager getConfigManager();
 
     Nms getNms();
+
+    ResetAdapter getAdapter();
 
     JavaPlugin getPlugin();
 

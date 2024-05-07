@@ -3,12 +3,15 @@ package ga.justreddy.wiki.tnttag.api.game;
 import ga.justreddy.wiki.tnttag.api.entity.TagPlayer;
 import ga.justreddy.wiki.tnttag.api.game.enums.GameState;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface Game {
+
+    void init(World world);
 
     String getName();
 

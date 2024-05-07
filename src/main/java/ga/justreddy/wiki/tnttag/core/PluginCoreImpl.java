@@ -1,6 +1,9 @@
 package ga.justreddy.wiki.tnttag.core;
 
+import com.grinderwolf.swm.api.SlimePlugin;
+import ga.justreddy.wiki.tnttag.api.game.map.ResetAdapter;
 import ga.justreddy.wiki.tnttag.commands.TestCommand;
+import ga.justreddy.wiki.tnttag.model.game.map.SlimeMapAdapter;
 import ga.justreddy.wiki.tnttag.nms.Nms;
 import ga.justreddy.wiki.tnttag.manager.*;
 import ga.justreddy.wiki.tnttag.util.ChatUtil;
@@ -28,6 +31,7 @@ public class PluginCoreImpl implements PluginCore {
     ConfigManager configManager;
     JavaPlugin plugin;
     @NonFinal Nms nms;
+    @NonFinal ResetAdapter adapter;
 
     public PluginCoreImpl(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -55,6 +59,10 @@ public class PluginCoreImpl implements PluginCore {
         managers.forEach(Manager::start);
 
         plugin.getCommand("tnttest").setExecutor(new TestCommand());
+
+        final SlimePlugin slimePlugin = (SlimePlugin) Bukkit.getPluginManager().getPlugin("SlimeWorldManager");
+
+        adapter = new SlimeMapAdapter(slimePlugin, slimePlugin.getLoader("file"));
 
         ChatUtil.sendConsole("&bFinished starting plugin...");
     }
@@ -93,6 +101,11 @@ public class PluginCoreImpl implements PluginCore {
     @Override
     public Nms getNms() {
         return nms;
+    }
+
+    @Override
+    public ResetAdapter getAdapter() {
+        return adapter;
     }
 
     @Override

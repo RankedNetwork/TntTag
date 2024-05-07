@@ -30,6 +30,8 @@ public class RoundImpl implements Round {
     Game game;
     @NonFinal int roundDuration;
     int roundNumber;
+    FileConfiguration config = TntTag.getCore().getConfigManager()
+            .getMessagesConfig().getConfig();
 
     public RoundImpl(Game game, int roundDuration, int roundNumber) {
         this.game = game;
@@ -54,10 +56,7 @@ public class RoundImpl implements Round {
 
     @Override
     public void start() {
-        FileConfiguration config = TntTag.getCore().getConfigManager()
-                .getMessagesConfig().getConfig();
         game.sendTitle(config.getString("titles.round-start.title"), config.getString("titles.round-start.subtitle"));
-
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -100,10 +99,7 @@ public class RoundImpl implements Round {
 
     @Override
     public void end() {
-        FileConfiguration config = TntTag.getCore().getConfigManager()
-                .getMessagesConfig().getConfig();
         game.sendMessage(config.getString("game.round-end"));
-
         game.getAlivePlayers().forEach(player -> {
             Player bukkitPlayer = player.getPlayer().orElse(null);
             if (bukkitPlayer == null) return;

@@ -73,7 +73,7 @@ public class GameListener implements Listener {
     }
 
     @EventHandler
-    public void onDrop(PlayerDropItemEvent event) {
+    public void onItemDrop(PlayerDropItemEvent event) {
         TagPlayer tagPlayer = TntTag.getCore().getPlayerManager()
                 .getTagPlayer(event.getPlayer().getUniqueId());
         if (!tagPlayer.isPlaying()) return;

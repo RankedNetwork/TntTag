@@ -7,18 +7,15 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Optional;
-
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+/**
+ * @author JustReddy
+ */
+@Getter
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class GameEndEvent extends TagEvent {
+public class PlayerGameLeaveEvent extends TagEvent {
 
-    @Getter
     Game game;
-    TagPlayer winner;
-
-    public Optional<TagPlayer> getWinner() {
-        return Optional.ofNullable(winner);
-    }
+    TagPlayer player;
 
 }
